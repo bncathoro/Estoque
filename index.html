@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Peregrino • Controle de Carnes & Produção</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0c0a09; color: #f5f5f4; font-family: system-ui, -apple-system, sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1c1917; }
+    ::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+    .tab-active { background-color: #f59e0b; color: #0c0a09; font-weight: 700; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-12">
+
+  <!-- Cabeçalho + Menu de Três Pontinhos -->
+  <header class="sticky top-0 z-30 bg-stone-950/95 backdrop-blur border-b border-stone-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500 text-stone-950 font-black flex items-center justify-center text-sm shadow">EP</div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-stone-100 leading-tight">EL PEREGRINO</h1>
+          <p class="text-[11px] text-stone-400">Controle Operacional de Carnes</p>
+        </div>
+      </div>
+
+      <!-- Menu 3 Pontinhos -->
+      <div class="relative">
+        <button id="btnThreeDots" onclick="toggleMenuDots(event)" aria-label="Menu de navegação"
+          class="p-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 flex items-center gap-1.5 cursor-pointer">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+          </svg>
+          <span class="text-xs font-semibold hidden sm:inline">Menu</span>
+        </button>
+        <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-60 rounded-2xl bg-stone-900 border border-stone-700 shadow-2xl py-2 z-50">
+          <button onclick="setTab('dashboard')" class="w-full text-left px-4 py-2.5 text-xs hover:bg-stone-800 flex items-center justify-between"><span>📊 Dashboard & Alertas</span></button>
+          <button onclick="setTab('nf')" class="w-full text-left px-4 py-2.5 text-xs hover:bg-stone-800 flex items-center justify-between"><span>🧾 1. Entrada de NF</span></button>
+          <button onclick="setTab('abertura')" class="w-full text-left px-4 py-2.5 text-xs hover:bg-stone-800 flex items-center justify-between"><span>📦 2. Abertura de Caixa</span></button>
+          <button onclick="setTab('camara')" class="w-full text-left px-4 py-2.5 text-xs hover:bg-stone-800 flex items-center justify-between"><span>❄️ 3. Câmara Fria</span></button>
+          <button onclick="setTab('eli')" class="w-full text-left px-4 py-2.5 text-xs hover:bg-stone-800 flex items-center justify-between"><span>🧊 4. Geladeira do Eli</span></button>
+          <button onclick="setTab('perdas')" class="w-full text-left px-4 py-2.5 text-xs hover:bg-stone-800 flex items-center justify-between"><span>🥩 5. Aparas & Perdas</span></button>
+          <div class="my-1 border-t border-stone-800"></div>
+          <button onclick="setTab('adm')" class="w-full text-left px-4 py-2.5 text-xs text-amber-400 font-semibold hover:bg-stone-800 flex items-center justify-between"><span>🔐 Área ADM</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra Rápida de Abas -->
+    <nav class="max-w-6xl mx-auto mt-3 flex gap-1.5 overflow-x-auto pb-1 no-scrollbar" id="navTabs">
+      <button data-tab="dashboard" onclick="setTab('dashboard')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-stone-300 border border-stone-800 cursor-pointer">📊 Dashboard</button>
+      <button data-tab="nf" onclick="setTab('nf')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-stone-300 border border-stone-800 cursor-pointer">1. Entrada NF</button>
+      <button data-tab="abertura" onclick="setTab('abertura')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-stone-300 border border-stone-800 cursor-pointer">2. Abertura Caixa</button>
+      <button data-tab="camara" onclick="setTab('camara')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-stone-300 border border-stone-800 cursor-pointer">3. Câmara Fria</button>
+      <button data-tab="eli" onclick="setTab('eli')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-stone-300 border border-stone-800 cursor-pointer">4. Geladeira Eli</button>
+      <button data-tab="perdas" onclick="setTab('perdas')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-stone-300 border border-stone-800 cursor-pointer">5. Aparas/Perdas</button>
+      <button data-tab="adm" onclick="setTab('adm')" class="nav-btn px-3 py-1.5 rounded-xl text-xs whitespace-nowrap bg-stone-900 text-amber-400 border border-stone-800 cursor-pointer">🔐 ADM</button>
+    </nav>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main id="app" class="flex-1 max-w-6xl w-full mx-auto px-4 pt-5 space-y-6"></main>
+
+  <!-- Modal Dinâmico -->
+  <div id="modalBackdrop" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+    <div id="modalBox" class="bg-stone-900 border border-stone-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'el_peregrino_carnes_v3';
+    const ADM_PASS = '990992';
+    const DEFAULT_CORTES = ['Ancho', 'Chorizo', 'Picanha', 'Fraldinha', 'Bife de Tira', 'Assado de Tira'];
+
+    let state = loadState();
+    let currentTab = 'dashboard';
+    let admUnlocked = false;
+    let aberturaQtd = 5;
+    let aberturaInicio = 1;
+    let aberturaPesos = {};
+
+    function getInitialState() {
+      return {
+        cortes: [...DEFAULT_CORTES],
+        nfs: [],       // { id, numero, fornecedor, dataNF, corte, qtdCaixas, pesoTotalKg, caixasAbertas, createdAt }
+        pecas: [],     // { id, etiqueta, numSeq, corte, pesoKg, nfId, nfNumero, dataNF, validadeData, local: 'camara'|'eli'|'baixada', emUso: false, dataBaixa, obs }
+        perdas: [],    // { id, data, tipo: 'Apara'|'Perda'|'Steak Perdido', corte, etiqueta, pesoKg, motivo }
+        historico: []  // { id, dataHora, acao, detalhe, autor, justificativa }
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getInitialState();
+        const parsed = JSON.parse(raw);
+        return { ...getInitialState(), ...parsed };
+      } catch (e) {
+        return getInitialState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function logHistorico(acao, detalhe, autor = 'Operação', justificativa = '-') {
+      state.historico.unshift({
+        id: 'H' + Date.now() + Math.random().toString(16).slice(2, 6),
+        dataHora: new Date().toLocaleString('pt-BR'),
+        acao,
+        detalhe,
+        autor,
+        justificativa
+      });
+    }
+
+    function todayISO() {
+      const d = new Date();
+      return d.toISOString().split('T')[0];
+    }
+
+    function addThreeMonths(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(y, m - 1 + 3, d);
+      return dt.toISOString().split('T')[0];
+    }
+
+    function formatBR(dateStr) {
+      if (!dateStr) return '-';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function daysBetween(dateStr) {
+      if (!dateStr) return 0;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const start = new Date(y, m - 1, d);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
+    }
+
+    function daysUntil(dateStr) {
+      if (!dateStr) return 999;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const end = new Date(y, m - 1, d);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return Math.floor((end - now) / (1000 * 60 * 60 * 24));
+    }
+
+    function fmtKg(val) {
+      return Number(val || 0).toFixed(3).replace('.', ',') + ' kg';
+    }
+
+    function toggleMenuDots(e) {
+      e.stopPropagation();
+      document.getElementById('dropdownMenu').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', () => {
+      const menu = document.getElementById('dropdownMenu');
+      if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden');
+    });
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('dropdownMenu').classList.add('hidden');
+      render();
+    }
+
+    function openModal(html) {
+      document.getElementById('modalBox').innerHTML = html;
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modalBackdrop').classList.add('hidden');
+      document.getElementById('modalBox').innerHTML = '';
+    }
+
+    function render() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.dataset.tab === currentTab) {
+          btn.classList.add('tab-active');
+          btn.classList.remove('bg-stone-900', 'text-stone-300', 'text-amber-400');
+        } else {
+          btn.classList.remove('tab-active');
+          btn.classList.add('bg-stone-900');
+          btn.classList.add(btn.dataset.tab === 'adm' ? 'text-amber-400' : 'text-stone-300');
+        }
+      });
+
+      const app = document.getElementById('app');
+      if (currentTab === 'dashboard') app.innerHTML = renderDashboard();
+      else if (currentTab === 'nf') app.innerHTML = renderNF();
+      else if (currentTab === 'abertura') app.innerHTML = renderAbertura();
+      else if (currentTab === 'camara') app.innerHTML = renderCamara();
+      else if (currentTab === 'eli') app.innerHTML = renderEli();
+      else if (currentTab === 'perdas') app.innerHTML = renderPerdas();
+      else if (currentTab === 'adm') app.innerHTML = renderADM();
+    }
+
+    /* ==================== DASHBOARD ==================== */
+    function renderDashboard() {
+      const camaraPecas = state.pecas.filter(p => p.local === 'camara');
+      const eliPecas = state.pecas.filter(p => p.local === 'eli');
+      const baixadas = state.pecas.filter(p => p.local === 'baixada');
+      const caixasPendentes = state.nfs.reduce((acc, nf) => acc + Math.max(0, nf.qtdCaixas - nf.caixasAbertas), 0);
+
+      const pesoCamara = camaraPecas.reduce((s, p) => s + Number(p.pesoKg), 0);
+      const pesoEli = eliPecas.reduce((s, p) => s + Number(p.pesoKg), 0);
+      const totalAparas = state.perdas.filter(x => x.tipo === 'Apara').reduce((s, x) => s + Number(x.pesoKg), 0);
+      const totalPerdas = state.perdas.filter(x => x.tipo !== 'Apara').reduce((s, x) => s + Number(x.pesoKg), 0);
+
+      // Alerta de Recompra (<= 5 peças na Câmara Fria por corte)
+      const alertasRecompra = state.cortes.map(corte => {
+        const qtd = camaraPecas.filter(p => p.corte === corte).length;
+        return { corte, qtd };
+      }).filter(item => item.qtd <= 5);
+
+      // Alerta de Peças Antigas / Paradas (PEPS/FIFO)
+      const ativas = [...camaraPecas, ...eliPecas];
+      const pecasAntigas = ativas
+        .map(p => ({ ...p, diasParada: daysBetween(p.dataNF), diasVencer: daysUntil(p.validadeData) }))
+        .filter(p => p.diasParada >= 7 || p.diasVencer <= 20)
+        .sort((a, b) => b.diasParada - a.diasParada);
+
+      // Detectar peça antiga esquecida frente a numeração alta do mesmo corte
+      const avisosSequencia = [];
+      state.cortes.forEach(corte => {
+        const doCorte = ativas.filter(p => p.corte === corte && typeof p.numSeq === 'number');
+        if (doCorte.length >= 2) {
+          const menor = [...doCorte].sort((a, b) => a.numSeq - b.numSeq)[0];
+          const maior = [...doCorte].sort((a, b) => b.numSeq - a.numSeq)[0];
+          if (maior.numSeq - menor.numSeq >= 5) {
+            avisosSequencia.push({ corte, menor, maior, dias: daysBetween(menor.dataNF) });
+          }
+        }
+      });
+
+      return `
+        <section class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-bold text-stone-100">Painel Operacional & Alertas</h2>
+              <p class="text-xs text-stone-400">Visão geral de estoque, validade de 3 meses, recompra (≤ 5 peças) e rendimento.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="setTab('nf')" class="px-3 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs cursor-pointer">+ Lançar NF</button>
+              <button onclick="setTab('abertura')" class="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-100 font-semibold text-xs cursor-pointer">Abrir Caixa (${caixasPendentes})</button>
+            </div>
+          </div>
+
+          <!-- KPIs -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4">
+              <p class="text-[11px] text-stone-400 uppercase">Câmara Fria</p>
+              <p class="text-xl font-black text-sky-400 mt-1">${camaraPecas.length} pçs</p>
+              <p class="text-xs text-stone-400 mt-0.5">${fmtKg(pesoCamara)}</p>
+            </div>
+            <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4">
+              <p class="text-[11px] text-stone-400 uppercase">Geladeira do Eli</p>
+              <p class="text-xl font-black text-emerald-400 mt-1">${eliPecas.length} pçs</p>
+              <p class="text-xs text-stone-400 mt-0.5">${fmtKg(pesoEli)}</p>
+            </div>
+            <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4">
+              <p class="text-[11px] text-stone-400 uppercase">Baixas / Produção</p>
+              <p class="text-xl font-black text-amber-400 mt-1">${baixadas.length} pçs</p>
+              <p class="text-xs text-stone-400 mt-0.5">${caixasPendentes} cx(s) fechada(s)</p>
+            </div>
+            <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4">
+              <p class="text-[11px] text-stone-400 uppercase">Aparas / Perdas</p>
+              <p class="text-xl font-black text-rose-400 mt-1">${fmtKg(totalPerdas)}</p>
+              <p class="text-xs text-stone-400 mt-0.5">Aparas: ${fmtKg(totalAparas)}</p>
+            </div>
+          </div>
+
+          <!-- Alerta de Recompra <= 5 peças -->
+          <div class="bg-stone-900 border border-amber-500/40 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-amber-400">⚠️ Alerta de Recompra — Câmara Fria (5 peças ou menos)</h3>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold">${alertasRecompra.length} corte(s)</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              ${alertasRecompra.map(a => `
+                <div class="bg-stone-950 border ${a.qtd === 0 ? 'border-rose-500/60' : 'border-amber-500/40'} rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-bold text-stone-100">${a.corte}</p>
+                    <p class="text-[11px] ${a.qtd === 0 ? 'text-rose-400' : 'text-amber-300'}">${a.qtd === 0 ? 'Zerado na Câmara!' : `Apenas ${a.qtd} peça(s)`}</p>
+                  </div>
+                  <span class="text-sm font-black ${a.qtd === 0 ? 'text-rose-400' : 'text-amber-400'}">${a.qtd}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Alerta de Peças Paradas / Validade 3 Meses (PEPS) -->
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
+            <h3 class="text-sm font-bold text-stone-100">⏳ Controle de Giro & Validade (Prazo 3 Meses da NF)</h3>
+            ${avisosSequencia.length === 0 && pecasAntigas.length === 0 ? `
+              <p class="text-xs text-stone-400">Nenhuma peça antiga parada ou próxima do vencimento no momento.</p>
+            ` : `
+              <div class="space-y-2">
+                ${avisosSequencia.map(av => `
+                  <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-500/50 text-xs text-amber-200">
+                    <strong>Atenção no Giro (${av.corte}):</strong> A peça <strong>${av.menor.etiqueta}</strong> está parada há <strong>${av.dias} dia(s)</strong> (NF ${formatBR(av.menor.dataNF)} • vence ${formatBR(av.menor.validadeData)}), enquanto já existe a peça <strong>${av.maior.etiqueta}</strong> no estoque!
+                  </div>
+                `).join('')}
+                ${pecasAntigas.slice(0, 6).map(p => `
+                  <div class="p-3 rounded-xl bg-stone-950 border ${p.diasVencer <= 15 ? 'border-rose-500/60' : 'border-stone-800'} flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div>
+                      <span class="font-bold text-stone-100">${p.corte} • ${p.etiqueta}</span>
+                      <span class="ml-2 px-2 py-0.5 rounded bg-stone-800 text-[11px] text-stone-300">${p.local === 'camara' ? 'Câmara Fria' : 'Geladeira Eli'}</span>
+                      <p class="text-[11px] text-stone-400 mt-0.5">Entrada NF: ${formatBR(p.dataNF)} (${p.diasParada} dias parada) • Validade: <strong class="${p.diasVencer <= 15 ? 'text-rose-400' : 'text-amber-300'}">${formatBR(p.validadeData)}</strong></p>
+                    </div>
+                    <span class="text-xs font-semibold text-stone-300">${fmtKg(p.pesoKg)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- Resumo por Corte -->
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 overflow-x-auto">
+            <h3 class="text-sm font-bold text-stone-100 mb-3">Resumo por Corte</h3>
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-stone-800 text-stone-400">
+                  <th class="py-2 pr-3">Corte</th>
+                  <th class="py-2 px-3">Câmara Fria</th>
+                  <th class="py-2 px-3">Geladeira Eli</th>
+                  <th class="py-2 px-3">Baixadas</th>
+                  <th class="py-2 pl-3">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-800/70">
+                ${state.cortes.map(c => {
+                  const qCam = camaraPecas.filter(p => p.corte === c).length;
+                  const qEli = eliPecas.filter(p => p.corte === c).length;
+                  const qBai = baixadas.filter(p => p.corte === c).length;
+                  return `
+                    <tr>
+                      <td class="py-2.5 pr-3 font-bold text-stone-100">${c}</td>
+                      <td class="py-2.5 px-3 text-sky-400 font-semibold">${qCam} pçs</td>
+                      <td class="py-2.5 px-3 text-emerald-400 font-semibold">${qEli} pçs</td>
+                      <td class="py-2.5 px-3 text-stone-300">${qBai} pçs</td>
+                      <td class="py-2.5 pl-3">${qCam <= 5 ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-semibold">Recomprar (≤5)</span>' : '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px]">OK</span>'}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    /* ==================== 1. ENTRADA DE NF ==================== */
+    function renderNF() {
+      return `
+        <section class="space-y-5">
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div>
+              <h2 class="text-base font-bold text-stone-100">1. Entrada de Nota Fiscal (NF)</h2>
+              <p class="text-xs text-stone-400">Registre a nota recebida, a data (que define a validade de 3 meses) e o peso total das caixas.</p>
+            </div>
+            <form onsubmit="handleAddNF(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Número da NF</label>
+                <input id="nfNumero" required placeholder="Ex: 10452" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Fornecedor</label>
+                <input id="nfFornecedor" required placeholder="Ex: Frigorífico Boi Nobre" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Data da NF (Início Validade 3m)</label>
+                <input id="nfData" type="date" required value="${todayISO()}" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Corte</label>
+                <select id="nfCorte" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100">
+                  ${state.cortes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Qtd. de Caixas</label>
+                <input id="nfQtdCaixas" type="number" min="1" value="1" required class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Peso Total da NF (kg)</label>
+                <input id="nfPesoTotal" type="number" step="0.001" min="0.1" required placeholder="Ex: 18.500" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div class="sm:col-span-3 flex justify-end pt-1">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer">Registrar NF no Estoque</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
+            <h3 class="text-sm font-bold text-stone-100">Notas Fiscais Lançadas (${state.nfs.length})</h3>
+            ${state.nfs.length === 0 ? '<p class="text-xs text-stone-400">Nenhuma NF registrada ainda.</p>' : `
+              <div class="space-y-2">
+                ${state.nfs.map(nf => {
+                  const pendentes = Math.max(0, nf.qtdCaixas - nf.caixasAbertas);
+                  return `
+                    <div class="bg-stone-950 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div>
+                        <p class="font-bold text-stone-100">NF #${nf.numero} • ${nf.corte} <span class="text-stone-400 font-normal">(${nf.fornecedor})</span></p>
+                        <p class="text-[11px] text-stone-400 mt-0.5">Data NF: ${formatBR(nf.dataNF)} • Validade 3m: <span class="text-amber-300">${formatBR(addThreeMonths(nf.dataNF))}</span> • Peso NF: ${fmtKg(nf.pesoTotalKg)}</p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-lg ${pendentes > 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} font-semibold">
+                          ${nf.caixasAbertas}/${nf.qtdCaixas} cx aberta(s)
+                        </span>
+                        ${pendentes > 0 ? `<button onclick="setTab('abertura')" class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-100 font-semibold cursor-pointer">Abrir Caixa</button>` : ''}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function handleAddNF(e) {
+      e.preventDefault();
+      const nf = {
+        id: 'NF' + Date.now(),
+        numero: document.getElementById('nfNumero').value.trim(),
+        fornecedor: document.getElementById('nfFornecedor').value.trim(),
+        dataNF: document.getElementById('nfData').value,
+        corte: document.getElementById('nfCorte').value,
+        qtdCaixas: parseInt(document.getElementById('nfQtdCaixas').value, 10) || 1,
+        pesoTotalKg: parseFloat(document.getElementById('nfPesoTotal').value) || 0,
+        caixasAbertas: 0,
+        createdAt: new Date().toISOString()
+      };
+      state.nfs.unshift(nf);
+      logHistorico('Entrada de NF', `NF #${nf.numero} (${nf.corte}) - ${nf.qtdCaixas} cx - ${fmtKg(nf.pesoTotalKg)}`);
+      saveState();
+      render();
+    }
+
+    /* ==================== 2. ABERTURA DE CAIXA ==================== */
+    function renderAbertura() {
+      const nfsDisponiveis = state.nfs.filter(nf => nf.caixasAbertas < nf.qtdCaixas);
+
+      let caixinhasHTML = '';
+      let somaPecas = 0;
+      for (let i = 0; i < aberturaQtd; i++) {
+        const num = aberturaInicio + i;
+        const val = aberturaPesos[i] !== undefined ? aberturaPesos[i] : '';
+        somaPecas += parseFloat(val) || 0;
+        caixinhasHTML += `
+          <div class="bg-stone-950 border border-stone-700 rounded-xl p-2.5 flex items-center justify-between gap-2">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-extrabold text-xs">P${num}</span>
+            <input type="number" step="0.001" min="0.01" placeholder="Peso (kg)"
+              value="${val}"
+              oninput="updatePesoPeca(${i}, this.value)"
+              class="w-28 bg-stone-900 border border-stone-700 rounded-lg px-2.5 py-1.5 text-xs text-right text-stone-100 font-semibold" />
+          </div>
+        `;
+      }
+
+      return `
+        <section class="space-y-5">
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div>
+              <h2 class="text-base font-bold text-stone-100">2. Abertura de Caixa & Pesagem Individual</h2>
+              <p class="text-xs text-stone-400">Informe a quantidade de peças e o número inicial (ex: P1 ou P5) para gerar as caixinhas individuais e enviar para a Câmara Fria.</p>
+            </div>
+
+            ${nfsDisponiveis.length === 0 ? `
+              <div class="p-4 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-400 flex items-center justify-between">
+                <span>Nenhuma caixa fechada aguardando abertura. Lance uma NF primeiro.</span>
+                <button onclick="setTab('nf')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-bold cursor-pointer">Ir para NF</button>
+              </div>
+            ` : `
+              <form onsubmit="handleConfirmarAbertura(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs text-stone-400 mb-1">Selecione a NF / Caixa</label>
+                    <select id="abNfId" onchange="recalcDiferencaCaixa()" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100">
+                      ${nfsDisponiveis.map(nf => {
+                        const pesoMedioCaixa = nf.pesoTotalKg / nf.qtdCaixas;
+                        return `<option value="${nf.id}" data-peso-caixa="${pesoMedioCaixa.toFixed(3)}">NF #${nf.numero} • ${nf.corte} (Cx ${nf.caixasAbertas + 1}/${nf.qtdCaixas} • ~${fmtKg(pesoMedioCaixa)})</option>`;
+                      }).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-stone-400 mb-1">Peso da Caixa na Balança (kg)</label>
+                    <input id="abPesoCaixa" type="number" step="0.001" min="0.1" required
+                      value="${(nfsDisponiveis[0].pesoTotalKg / nfsDisponiveis[0].qtdCaixas).toFixed(3)}"
+                      oninput="recalcDiferencaCaixa()"
+                      class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100 font-bold" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs text-stone-400 mb-1">Qtd. Peças</label>
+                      <input id="abQtdPecas" type="number" min="1" max="40" value="${aberturaQtd}"
+                        onchange="changeQtdAbertura(this.value)" oninput="changeQtdAbertura(this.value)"
+                        class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100 font-bold" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-stone-400 mb-1">Início (P...)</label>
+                      <input id="abInicioSeq" type="number" min="1" value="${aberturaInicio}"
+                        onchange="changeInicioAbertura(this.value)" oninput="changeInicioAbertura(this.value)"
+                        class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100 font-bold" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Caixinhas das peças geradas -->
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-stone-200">Peças da Caixa (P${aberturaInicio} até P${aberturaInicio + aberturaQtd - 1})</span>
+                    <span id="abResumoPeso" class="text-xs font-bold text-amber-400">Soma das peças: ${fmtKg(somaPecas)}</span>
+                  </div>
+                  <div id="gridCaixinhasPecas" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    ${caixinhasHTML}
+                  </div>
+                </div>
+
+                <div id="abStatusConferencia" class="p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-300">
+                  Preencha o peso de cada peça para conferir com o peso da caixa.
+                </div>
+
+                <div class="flex flex-wrap justify-end gap-2">
+                  <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-stone-950 font-extrabold text-xs cursor-pointer">
+                    Confirmar Abertura & Enviar para Câmara Fria ❄️
+                  </button>
+                </div>
+              </form>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function changeQtdAbertura(val) {
+      const n = Math.max(1, Math.min(40, parseInt(val, 10) || 1));
+      aberturaQtd = n;
+      render();
+    }
+
+    function changeInicioAbertura(val) {
+      const n = Math.max(1, parseInt(val, 10) || 1);
+      aberturaInicio = n;
+      render();
+    }
+
+    function updatePesoPeca(idx, val) {
+      aberturaPesos[idx] = val;
+      recalcDiferencaCaixa();
+    }
+
+    function recalcDiferencaCaixa() {
+      let soma = 0;
+      for (let i = 0; i < aberturaQtd; i++) {
+        soma += parseFloat(aberturaPesos[i]) || 0;
+      }
+      const pesoCaixaEl = document.getElementById('abPesoCaixa');
+      const resumoEl = document.getElementById('abResumoPeso');
+      const statusEl = document.getElementById('abStatusConferencia');
+      if (!pesoCaixaEl || !resumoEl || !statusEl) return;
+
+      const pesoCaixa = parseFloat(pesoCaixaEl.value) || 0;
+      const diff = soma - pesoCaixa;
+      resumoEl.textContent = `Soma das peças: ${fmtKg(soma)}`;
+
+      if (soma === 0) {
+        statusEl.className = 'p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-300';
+        statusEl.textContent = 'Preencha o peso de cada peça para conferir com o peso da caixa.';
+      } else if (Math.abs(diff) <= 0.200) {
+        statusEl.className = 'p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/50 text-xs text-emerald-300';
+        statusEl.innerHTML = `✅ Conferência dentro da tolerância (200g): Caixa <strong>${fmtKg(pesoCaixa)}</strong> | Peças <strong>${fmtKg(soma)}</strong> (Diferença: ${diff >= 0 ? '+' : ''}${fmtKg(diff)})`;
+      } else {
+        statusEl.className = 'p-3 rounded-xl bg-amber-950/40 border border-amber-500/50 text-xs text-amber-200';
+        statusEl.innerHTML = `⚠️ Diferença acima de 200g: Caixa <strong>${fmtKg(pesoCaixa)}</strong> | Peças <strong>${fmtKg(soma)}</strong> (Diferença: ${diff >= 0 ? '+' : ''}${fmtKg(diff)})`;
+      }
+    }
+
+    function handleConfirmarAbertura(e) {
+      e.preventDefault();
+      const nfId = document.getElementById('abNfId').value;
+      const nf = state.nfs.find(x => x.id === nfId);
+      if (!nf) return;
+
+      const novasPecas = [];
+      for (let i = 0; i < aberturaQtd; i++) {
+        const peso = parseFloat(aberturaPesos[i]);
+        if (!peso || peso <= 0) {
+          alert(`Informe o peso válido da peça P${aberturaInicio + i}.`);
+          return;
+        }
+        const numSeq = aberturaInicio + i;
+        novasPecas.push({
+          id: 'PC' + Date.now() + '_' + i,
+          etiqueta: 'P' + numSeq,
+          numSeq,
+          corte: nf.corte,
+          pesoKg: peso,
+          nfId: nf.id,
+          nfNumero: nf.numero,
+          dataNF: nf.dataNF,
+          validadeData: addThreeMonths(nf.dataNF),
+          local: 'camara',
+          emUso: false,
+          dataBaixa: null
+        });
+      }
+
+      nf.caixasAbertas += 1;
+      state.pecas.push(...novasPecas);
+      const totalPeso = novasPecas.reduce((s, p) => s + p.pesoKg, 0);
+      logHistorico('Abertura de Caixa', `NF #${nf.numero} (${nf.corte}) aberta com ${novasPecas.length} peças (P${aberturaInicio}..P${aberturaInicio + aberturaQtd - 1}) • ${fmtKg(totalPeso)} -> Câmara Fria`);
+
+      // Avança sugestão de sequência para a próxima caixa e limpa pesos
+      aberturaInicio = aberturaInicio + aberturaQtd;
+      aberturaPesos = {};
+      saveState();
+      setTab('camara');
+    }
+
+    /* ==================== 3. CÂMARA FRIA ==================== */
+    function renderCamara() {
+      const pecas = state.pecas.filter(p => p.local === 'camara');
+
+      return `
+        <section class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-base font-bold text-stone-100">3. Câmara Fria (${pecas.length} peças)</h2>
+              <p class="text-xs text-stone-400">Clique diretamente em qualquer peça para enviá-la para a <strong>Geladeira do Eli</strong>.</p>
+            </div>
+            <button onclick="setTab('eli')" class="px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs cursor-pointer">Ver Geladeira do Eli →</button>
+          </div>
+
+          ${pecas.length === 0 ? `
+            <div class="bg-stone-900 border border-stone-800 rounded-2xl p-6 text-center text-xs text-stone-400">
+              Nenhuma peça na Câmara Fria no momento. Abra uma caixa na aba <strong>2. Abertura Caixa</strong>.
+            </div>
+          ` : `
+            <div class="space-y-4">
+              ${state.cortes.map(corte => {
+                const lista = pecas.filter(p => p.corte === corte).sort((a, b) => a.numSeq - b.numSeq);
+                if (lista.length === 0) return '';
+                const alerta = lista.length <= 5;
+                return `
+                  <div class="bg-stone-900 border ${alerta ? 'border-amber-500/50' : 'border-stone-800'} rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-bold text-stone-100">${corte}</h3>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${alerta ? 'bg-amber-500/20 text-amber-300' : 'bg-sky-500/20 text-sky-300'}">${lista.length} peça(s)</span>
+                      </div>
+                      ${alerta ? '<span class="text-[11px] font-bold text-amber-400">⚠️ Alerta Recompra (≤ 5)</span>' : ''}
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      ${lista.map(p => {
+                        const dias = daysBetween(p.dataNF);
+                        const antiga = dias >= 7;
+                        return `
+                          <button onclick="promptMoverParaEli('${p.id}')"
+                            class="text-left bg-stone-950 hover:bg-stone-800/90 border ${antiga ? 'border-amber-500/60' : 'border-stone-800'} rounded-xl p-3 transition cursor-pointer">
+                            <div class="flex items-center justify-between">
+                              <span class="text-xs font-black text-sky-400">${p.etiqueta}</span>
+                              <span class="text-xs font-bold text-stone-100">${fmtKg(p.pesoKg)}</span>
+                            </div>
+                            <p class="text-[10px] text-stone-400 mt-1">NF #${p.nfNumero} • ${dias}d parada</p>
+                            <p class="text-[10px] text-amber-300/90">Val: ${formatBR(p.validadeData)}</p>
+                            <p class="text-[10px] text-emerald-400 font-semibold mt-1.5">Toque p/ Geladeira Eli →</p>
+                          </button>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </section>
+      `;
+    }
+
+    function promptMoverParaEli(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      openModal(`
+        <h3 class="text-sm font-bold text-stone-100">Enviar Peça para Geladeira do Eli</h3>
+        <p class="text-xs text-stone-300">Deseja transferir <strong>${p.corte} • ${p.etiqueta}</strong> (${fmtKg(p.pesoKg)}) da Câmara Fria para a <strong>Geladeira do Eli</strong>?</p>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-stone-800 text-xs font-semibold cursor-pointer">Cancelar</button>
+          <button type="button" onclick="confirmarMoverParaEli('${p.id}')" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs cursor-pointer">Enviar para Eli</button>
+        </div>
+      `);
+    }
+
+    function confirmarMoverParaEli(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      p.local = 'eli';
+      p.emUso = false;
+      logHistorico('Transferência Câmara → Eli', `${p.corte} ${p.etiqueta} (${fmtKg(p.pesoKg)}) enviada para Geladeira do Eli`);
+      saveState();
+      closeModal();
+      render();
+    }
+
+    /* ==================== 4. GELADEIRA DO ELI ==================== */
+    function renderEli() {
+      const pecas = state.pecas.filter(p => p.local === 'eli');
+
+      return `
+        <section class="space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-stone-100">4. Geladeira do Eli (${pecas.length} peças)</h2>
+            <p class="text-xs text-stone-400">Clique diretamente na peça para marcar <strong>Em Uso</strong>, devolver à Câmara Fria ou realizar a <strong>baixa produtiva por data e etiqueta</strong>.</p>
+          </div>
+
+          ${pecas.length === 0 ? `
+            <div class="bg-stone-900 border border-stone-800 rounded-2xl p-6 text-center text-xs text-stone-400">
+              Nenhuma peça na Geladeira do Eli. Clique em uma peça na <strong>Câmara Fria</strong> para transferir para cá.
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              ${pecas.map(p => `
+                <div onclick="promptAcaoEli('${p.id}')"
+                  class="bg-stone-900 hover:bg-stone-800/80 border ${p.emUso ? 'border-amber-500' : 'border-stone-800'} rounded-2xl p-4 cursor-pointer transition space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-black text-emerald-400">${p.corte} • ${p.etiqueta}</span>
+                    ${p.emUso ? '<span class="px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 text-[10px] font-black uppercase">Em Uso</span>' : '<span class="px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 text-[10px]">Disponível</span>'}
+                  </div>
+                  <p class="text-xs font-bold text-stone-100">Peso: ${fmtKg(p.pesoKg)}</p>
+                  <p class="text-[11px] text-stone-400">NF #${p.nfNumero} (${formatBR(p.dataNF)}) • Val: ${formatBR(p.validadeData)}</p>
+                  <p class="text-[11px] text-amber-300 font-semibold pt-1">Toque para Em Uso / Baixa / Devolver →</p>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </section>
+      `;
+    }
+
+    function promptAcaoEli(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      openModal(`
+        <h3 class="text-sm font-bold text-stone-100">${p.corte} • ${p.etiqueta} (${fmtKg(p.pesoKg)})</h3>
+        <p class="text-xs text-stone-400">Escolha a ação operacional na Geladeira do Eli:</p>
+        <div class="space-y-2 pt-1">
+          <button onclick="toggleEmUsoEli('${p.id}')" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer">
+            ${p.emUso ? 'Desmarcar "Peça em Uso"' : '🔪 Marcar como Peça em Uso'}
+          </button>
+          <div class="p-3 rounded-xl bg-stone-950 border border-stone-800 space-y-2">
+            <p class="text-xs font-bold text-emerald-400">Baixa Produtiva por Data & Etiqueta (${p.etiqueta})</p>
+            <input id="dataBaixaEli" type="date" value="${todayISO()}" class="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-stone-100" />
+            <button onclick="baixarPecaEli('${p.id}')" class="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs cursor-pointer">
+              Confirmar Baixa Produtiva (${p.etiqueta})
+            </button>
+          </div>
+          <button onclick="devolverParaCamara('${p.id}')" class="w-full py-2 px-4 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-300 font-semibold text-xs cursor-pointer">
+            ❄️ Devolver para Câmara Fria
+          </button>
+        </div>
+        <div class="flex justify-end pt-1">
+          <button onclick="closeModal()" class="px-4 py-1.5 rounded-xl bg-stone-800 text-xs cursor-pointer">Fechar</button>
+        </div>
+      `);
+    }
+
+    function toggleEmUsoEli(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      p.emUso = !p.emUso;
+      logHistorico('Status Geladeira Eli', `${p.corte} ${p.etiqueta} marcada como ${p.emUso ? 'EM USO' : 'Disponível'}`);
+      saveState();
+      closeModal();
+      render();
+    }
+
+    function baixarPecaEli(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      const dt = document.getElementById('dataBaixaEli').value || todayISO();
+      p.local = 'baixada';
+      p.emUso = false;
+      p.dataBaixa = dt;
+      logHistorico('Baixa Produtiva (Eli)', `Etiqueta ${p.etiqueta} (${p.corte} • ${fmtKg(p.pesoKg)}) baixada em ${formatBR(dt)}`);
+      saveState();
+      closeModal();
+      render();
+    }
+
+    function devolverParaCamara(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      p.local = 'camara';
+      p.emUso = false;
+      logHistorico('Transferência Eli → Câmara', `${p.corte} ${p.etiqueta} devolvida para Câmara Fria`);
+      saveState();
+      closeModal();
+      render();
+    }
+
+    /* ==================== 5. APARAS & PERDAS ==================== */
+    function renderPerdas() {
+      return `
+        <section class="space-y-5">
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div>
+              <h2 class="text-base font-bold text-stone-100">5. Registro de Aparas, Perdas & Steaks Perdidos</h2>
+              <p class="text-xs text-stone-400">Lance aparas de limpeza, perdas e steaks perdidos vinculados ao corte e etiqueta.</p>
+            </div>
+            <form onsubmit="handleAddPerda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Data</label>
+                <input id="perdaData" type="date" required value="${todayISO()}" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Tipo</label>
+                <select id="perdaTipo" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100">
+                  <option value="Apara">Apara (Limpeza)</option>
+                  <option value="Perda">Perda</option>
+                  <option value="Steak Perdido">Steak Perdido</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Corte</label>
+                <select id="perdaCorte" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100">
+                  ${state.cortes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Etiqueta (Opcional)</label>
+                <input id="perdaEtiqueta" placeholder="Ex: P3" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Peso (kg)</label>
+                <input id="perdaPeso" type="number" step="0.001" min="0.005" required placeholder="Ex: 0.350" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs text-stone-400 mb-1">Motivo / Observação</label>
+                <input id="perdaMotivo" required placeholder="Ex: Gordura excedente / ponto errado" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              </div>
+              <div class="sm:col-span-3 flex justify-end">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-stone-950 font-bold text-xs cursor-pointer">Registrar Ocorrência</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-2">
+            <h3 class="text-sm font-bold text-stone-100">Lançamentos de Aparas e Perdas (${state.perdas.length})</h3>
+            ${state.perdas.length === 0 ? '<p class="text-xs text-stone-400">Nenhum registro lançado.</p>' : state.perdas.map(item => `
+              <div class="bg-stone-950 border border-stone-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                <div>
+                  <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold text-[11px]">${item.tipo}</span>
+                  <strong class="ml-1.5 text-stone-100">${item.corte} ${item.etiqueta ? '(' + item.etiqueta + ')' : ''}</strong>
+                  <p class="text-[11px] text-stone-400 mt-0.5">${formatBR(item.data)} • ${item.motivo}</p>
+                </div>
+                <span class="font-bold text-rose-400">${fmtKg(item.pesoKg)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function handleAddPerda(e) {
+      e.preventDefault();
+      const item = {
+        id: 'PR' + Date.now(),
+        data: document.getElementById('perdaData').value,
+        tipo: document.getElementById('perdaTipo').value,
+        corte: document.getElementById('perdaCorte').value,
+        etiqueta: document.getElementById('perdaEtiqueta').value.trim().toUpperCase(),
+        pesoKg: parseFloat(document.getElementById('perdaPeso').value) || 0,
+        motivo: document.getElementById('perdaMotivo').value.trim()
+      };
+      state.perdas.unshift(item);
+      logHistorico(item.tipo, `${item.corte} ${item.etiqueta} - ${fmtKg(item.pesoKg)} (${item.motivo})`);
+      saveState();
+      render();
+    }
+
+    /* ==================== ÁREA ADM (SENHA 990992) ==================== */
+    function renderADM() {
+      if (!admUnlocked) {
+        return `
+          <section class="max-w-md mx-auto bg-stone-900 border border-stone-800 rounded-2xl p-6 space-y-4">
+            <h2 class="text-base font-bold text-amber-400">🔐 Área Administrativa (ADM)</h2>
+            <p class="text-xs text-stone-400">Digite a senha de administrador para liberar edição de pesos, estornos, cadastro de cortes, histórico e reinício do sistema.</p>
+            <form onsubmit="handleUnlockADM(event)" class="space-y-3">
+              <div class="relative">
+                <input id="admSenhaInput" type="password" required placeholder="Senha ADM"
+                  class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2.5 pr-10 text-xs text-stone-100" />
+                <button type="button" onclick="toggleAdmPassVisibility()" aria-label="Mostrar senha"
+                  class="absolute right-2.5 top-2 text-stone-400 hover:text-stone-200 text-xs cursor-pointer">👁️</button>
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer">Entrar no ADM</button>
+            </form>
+          </section>
+        `;
+      }
+
+      return `
+        <section class="space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-stone-900 border border-amber-500/40 rounded-2xl p-4">
+            <div>
+              <h2 class="text-base font-bold text-amber-400">🔐 Painel Administrativo Liberado</h2>
+              <p class="text-xs text-stone-400">Edições auditadas com justificativa, estornos, cortes e reset geral para testes.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="confirmarResetSistema()" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs cursor-pointer">
+                🔄 Reiniciar Sistema do Zero
+              </button>
+              <button onclick="admUnlocked = false; render()" class="px-3 py-2 rounded-xl bg-stone-800 text-xs cursor-pointer">Sair ADM</button>
+            </div>
+          </div>
+
+          <!-- Cadastrar Novo Corte -->
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
+            <h3 class="text-sm font-bold text-stone-100">Cadastrar Novo Corte</h3>
+            <form onsubmit="handleAddCorte(event)" class="flex gap-2">
+              <input id="novoCorteNome" required placeholder="Ex: T-Bone / Tomahawk" class="flex-1 bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+              <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs cursor-pointer">Adicionar</button>
+            </form>
+          </div>
+
+          <!-- Edição de Pesos & Estornos de Peças -->
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
+            <h3 class="text-sm font-bold text-stone-100">Editar Peso ou Estornar Peças (${state.pecas.length})</h3>
+            ${state.pecas.length === 0 ? '<p class="text-xs text-stone-400">Nenhuma peça cadastrada.</p>' : `
+              <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                ${state.pecas.map(p => `
+                  <div class="bg-stone-950 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div>
+                      <strong class="text-stone-100">${p.corte} • ${p.etiqueta}</strong>
+                      <span class="ml-2 text-amber-300 font-semibold">${fmtKg(p.pesoKg)}</span>
+                      <span class="ml-2 px-2 py-0.5 rounded bg-stone-800 text-[10px] text-stone-300">${p.local}</span>
+                    </div>
+                    <div class="flex gap-1.5">
+                      <button onclick="openEditarPesoModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-semibold cursor-pointer">Editar Peso</button>
+                      <button onclick="openEstornarPecaModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-semibold cursor-pointer">Estornar</button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- Histórico Auditável -->
+          <div class="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-2">
+            <h3 class="text-sm font-bold text-stone-100">Histórico Auditável (${state.historico.length})</h3>
+            <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+              ${state.historico.length === 0 ? '<p class="text-xs text-stone-400">Sem movimentações registradas.</p>' : state.historico.map(h => `
+                <div class="bg-stone-950 border border-stone-800/80 rounded-xl p-2.5 text-[11px]">
+                  <div class="flex justify-between text-stone-400">
+                    <span class="font-bold text-amber-300">${h.acao}</span>
+                    <span>${h.dataHora}</span>
+                  </div>
+                  <p class="text-stone-200 mt-0.5">${h.detalhe}</p>
+                  ${h.justificativa && h.justificativa !== '-' ? `<p class="text-rose-300 mt-0.5">Justificativa: ${h.justificativa} (${h.autor})</p>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function toggleAdmPassVisibility() {
+      const inp = document.getElementById('admSenhaInput');
+      if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    function handleUnlockADM(e) {
+      e.preventDefault();
+      const val = document.getElementById('admSenhaInput').value.trim();
+      if (val === ADM_PASS) {
+        admUnlocked = true;
+        render();
+      } else {
+        alert('Senha incorreta.');
+      }
+    }
+
+    function handleAddCorte(e) {
+      e.preventDefault();
+      const nome = document.getElementById('novoCorteNome').value.trim();
+      if (nome && !state.cortes.includes(nome)) {
+        state.cortes.push(nome);
+        logHistorico('Cadastro de Corte', `Novo corte adicionado: ${nome}`, 'ADM');
+        saveState();
+        render();
+      }
+    }
+
+    function openEditarPesoModal(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      openModal(`
+        <h3 class="text-sm font-bold text-stone-100">Editar Peso • ${p.corte} (${p.etiqueta})</h3>
+        <form onsubmit="confirmarEditarPeso(event, '${p.id}')" class="space-y-3">
+          <div>
+            <label class="block text-xs text-stone-400 mb-1">Novo Peso (kg)</label>
+            <input id="altNovoPeso" type="number" step="0.001" min="0.01" required value="${p.pesoKg}" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+          </div>
+          <div>
+            <label class="block text-xs text-stone-400 mb-1">Autor</label>
+            <input id="altAutor" type="text" required value="Fábio (ADM)" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+          </div>
+          <div>
+            <label class="block text-xs text-stone-400 mb-1">Justificativa Obrigatória</label>
+            <input id="altJust" type="text" required placeholder="Ex: Correção de leitura na balança" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-stone-800 text-xs font-semibold cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer">Salvar Alteração</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function confirmarEditarPeso(e, pecaId) {
+      e.preventDefault();
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      const pesoAntigo = p.pesoKg;
+      const novoPeso = parseFloat(document.getElementById('altNovoPeso').value);
+      const autor = document.getElementById('altAutor').value.trim();
+      const just = document.getElementById('altJust').value.trim();
+      p.pesoKg = novoPeso;
+      logHistorico('Edição de Peso (ADM)', `${p.corte} ${p.etiqueta}: de ${fmtKg(pesoAntigo)} para ${fmtKg(novoPeso)}`, autor, just);
+      saveState();
+      closeModal();
+      render();
+    }
+
+    function openEstornarPecaModal(pecaId) {
+      const p = state.pecas.find(x => x.id === pecaId);
+      if (!p) return;
+      openModal(`
+        <h3 class="text-sm font-bold text-rose-400">Estornar / Excluir Peça • ${p.corte} (${p.etiqueta})</h3>
+        <form onsubmit="confirmarEstornoPeca(event, '${p.id}')" class="space-y-3">
+          <div>
+            <label class="block text-xs text-stone-400 mb-1">Autor</label>
+            <input id="estAutor" type="text" required value="Fábio (ADM)" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+          </div>
+          <div>
+            <label class="block text-xs text-stone-400 mb-1">Justificativa Obrigatória do Estorno</label>
+            <input id="estJust" type="text" required placeholder="Ex: Lançamento duplicado na abertura" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-stone-100" />
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-stone-800 text-xs font-semibold cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs cursor-pointer">Confirmar Estorno</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function confirmarEstornoPeca(e, pecaId) {
+      e.preventDefault();
+      const idx = state.pecas.findIndex(x => x.id === pecaId);
+      if (idx === -1) return;
+      const p = state.pecas[idx];
+      const autor = document.getElementById('estAutor').value.trim();
+      const just = document.getElementById('estJust').value.trim();
+      state.pecas.splice(idx, 1);
+      logHistorico('Estorno de Peça (ADM)', `Removida peça ${p.corte} ${p.etiqueta} (${fmtKg(p.pesoKg)})`, autor, just);
+      saveState();
+      closeModal();
+      render();
+    }
+
+    function confirmarResetSistema() {
+      openModal(`
+        <h3 class="text-sm font-bold text-rose-400">🔄 Reiniciar Sistema do Zero</h3>
+        <p class="text-xs text-stone-300">Isso vai apagar <strong>todas as Notas Fiscais, caixas abertas, peças da Câmara Fria, Geladeira do Eli, aparas/perdas e histórico</strong> para você começar limpo do zero.</p>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-stone-800 text-xs font-semibold cursor-pointer">Cancelar</button>
+          <button type="button" onclick="executarResetSistema()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs cursor-pointer">Sim, Zerar Tudo Agora</button>
+        </div>
+      `);
+    }
+
+    function executarResetSistema() {
+      localStorage.removeItem(STORAGE_KEY);
+      state = getInitialState();
+      aberturaQtd = 5;
+      aberturaInicio = 1;
+      aberturaPesos = {};
+      saveState();
+      closeModal();
+      setTab('dashboard');
+    }
+
+    render();
+  </script>
+</body>
+</html>
